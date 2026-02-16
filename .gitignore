@@ -1,0 +1,17 @@
+# --- .NET (Backend) ---
+**/bin/
+**/obj/
+*.db
+*.db-shm
+*.db-wal
+appsettings.Development.json
+
+# --- React (Frontend) ---
+**/node_modules/
+**/dist/
+.eslintcache
+
+# --- IDE & OS ---
+.vscode/
+.vs/
+.DS_Store
