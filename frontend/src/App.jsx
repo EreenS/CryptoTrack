@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 function App() {
   const [coins, setCoins] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCoin, setSelectedCoin] = useState(null) // Seçili coini tutar
+  const [selectedCoin, setSelectedCoin] = useState(null)
 
   useEffect(() => {
     const fetchCoins = () => {
@@ -23,10 +23,10 @@ function App() {
   );
 
   return (
-    <div style={{ display: 'flex', backgroundColor: '#0a0a0a', minHeight: '100vh', color: '#eee', fontFamily: 'Inter, Arial' }}>
+    <div style={{ display: 'flex', backgroundColor: '#0a0a0a', width: '100vw', minHeight: '100vh', color: '#eee', fontFamily: 'Inter, Arial', overflow: 'hidden' }}>
       
-      {/* SOL TARAF: LİSTE PANELİ */}
-      <div style={{ width: '400px', borderRight: '1px solid #222', padding: '20px', overflowY: 'auto', height: '100vh' }}>
+      {/* LİSTE PANELİ  */}
+      <div style={{ width: '380px', minWidth: '380px', borderRight: '1px solid #222', padding: '20px', overflowY: 'auto', height: '100vh', boxSizing: 'border-box' }}>
         <h2 style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>📈 CryptoTrack</h2>
         
         <input
@@ -71,13 +71,13 @@ function App() {
         </div>
       </div>
 
-      {/* SAĞ TARAF: DETAY PANELİ */}
-      <div style={{ flex: 1, padding: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      {/* DETAY PANELİ  */}
+      <div style={{ flex: 1, padding: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', overflowY: 'auto', height: '100vh', boxSizing: 'border-box' }}>
         {selectedCoin ? (
-          <div style={{ width: '100%', maxWidth: '600px', animation: 'fadeIn 0.5s' }}>
+          <div style={{ width: '100%', maxWidth: '700px', animation: 'fadeIn 0.5s' }}>
             <div style={{ textAlign: 'center', marginBottom: '30px' }}>
               <img src={selectedCoin.image} width="100" style={{ marginBottom: '20px' }} alt="" />
-              <h1 style={{ fontSize: '3rem', margin: 0 }}>{selectedCoin.name}</h1>
+              <h1 style={{ fontSize: '3.5rem', margin: 0 }}>{selectedCoin.name}</h1>
               <span style={{ color: '#666', fontSize: '1.2rem' }}>{selectedCoin.symbol.toUpperCase()} / USD</span>
             </div>
 
@@ -98,11 +98,44 @@ function App() {
           </div>
         )}
       </div>
+      
+      {/* PİYASA ÖZETİ */}
+      <div style={{ width: '320px', minWidth: '320px', borderLeft: '1px solid #222', padding: '20px', backgroundColor: '#0d0d0d', overflowY: 'auto', height: '100vh', boxSizing: 'border-box' }}>
+        <h3 style={{ marginBottom: '20px', color: '#ffa726' }}>🔥 Trend Olanlar (24s)</h3>
+        
+        {coins
+          .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+          .slice(0, 3)
+          .map(coin => (
+            <div key={coin.id} style={{ backgroundColor: '#161616', padding: '15px', borderRadius: '12px', marginBottom: '15px', border: '1px solid #222' }}>
+              <div style={{ fontSize: '0.8rem', color: '#666', marginBottom: '5px' }}>Top Gainer</div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontWeight: 'bold' }}>{coin.symbol.toUpperCase()}</span>
+                <span style={{ color: '#4caf50' }}>+{coin.price_change_percentage_24h?.toFixed(2)}%</span>
+              </div>
+            </div>
+          ))
+        }
+
+        <hr style={{ border: '0', borderTop: '1px solid #222', margin: '25px 0' }} />
+
+        <h3 style={{ marginBottom: '20px', color: '#2196f3' }}>📊 Piyasa Verisi</h3>
+        <div style={{ backgroundColor: '#111', padding: '15px', borderRadius: '12px' }}>
+          <div style={{ marginBottom: '10px' }}>
+            <div style={{ fontSize: '0.8rem', color: '#666' }}>Aktif Coin Sayısı</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{coins.length}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.8rem', color: '#666' }}>Veri Kaynağı</div>
+            <div style={{ fontSize: '0.9rem', color: '#aaa' }}>CoinGecko V3</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   )
 }
 
-// Yardımcı Bileşen: Detay kutucukları için
 function DetailBox({ label, value, color }) {
   return (
     <div style={{ backgroundColor: '#111', padding: '20px', borderRadius: '15px', border: '1px solid #222' }}>
