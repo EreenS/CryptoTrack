@@ -1,9 +1,16 @@
-using backend.Services; // using'ler en üstte olur
+using backend.Services;
+using backend.Data;
+
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddHttpClient(); 
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite("Data Source=crypto.db"));
+
 builder.Services.AddControllers();
 builder.Services.AddScoped<CryptoService>();
 builder.Services.AddCors(options => {
