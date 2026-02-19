@@ -7,9 +7,11 @@ public class CryptoService
 {
     private readonly HttpClient _httpClient;
 
-    public CryptoService(HttpClient httpClient)
+    // Burada HttpClient yerine IHttpClientFactory alıyoruz usta
+    public CryptoService(IHttpClientFactory httpClientFactory)
     {
-        _httpClient = httpClient;
+        // Program.cs'de "SSL_Cozucu" adıyla kaydettiğimiz ayarlı istemciyi çağırıyoruz
+        _httpClient = httpClientFactory.CreateClient("SSL_Cozucu");
         _httpClient.DefaultRequestHeaders.Add("User-Agent", "CryptoTrackApp");
     }
 
@@ -23,7 +25,6 @@ public class CryptoService
 
             if ((int)response.StatusCode == 429)
             {
-                // Eğer hız sınırına takıldıysak hata fırlatmak yerine boş bir liste dönelim
                 Console.WriteLine("⚠️ CoinGecko Hız Sınırı: Çok fazla istek atıldı. Biraz bekle.");
                 return "[]"; 
             }
@@ -33,8 +34,9 @@ public class CryptoService
         }
         catch (Exception ex)
         {
+            // Artık o SSL hatası buraya düşecek ama Program.cs ayarıyla bunu aşacağız
             Console.WriteLine($"❌ Hata oluştu: {ex.Message}");
-            return "[]"; // Hata durumunda boş liste dön ki frontend çökmesin
+            return "[]"; 
         }
     }
 }

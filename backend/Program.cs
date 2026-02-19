@@ -6,7 +6,13 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddHttpClient(); 
+builder.Services.AddHttpClient("SSL_Cozucu").ConfigurePrimaryHttpMessageHandler(() => {
+    return new HttpClientHandler
+    {
+        // Sertifika hatalarını boşver, devam et
+        ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+    };
+});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=crypto.db"));
