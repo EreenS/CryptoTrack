@@ -5,6 +5,8 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCoin, setSelectedCoin] = useState(null)
   const [favorites, setFavorites] = useState([])
+  // TEMA STATE'I: Varsayılan koyu mod
+  const [isDarkMode, setIsDarkMode] = useState(true)
 
   useEffect(() => {
     const fetchCoins = () => {
@@ -17,9 +19,7 @@ function App() {
     const fetchFavorites = () => {
       fetch('http://localhost:5012/api/Favorites')
         .then(res => res.json())
-        .then(data => {
-          setFavorites(data.map(f => f.coinId));
-        })
+        .then(data => setFavorites(data.map(f => f.coinId)))
         .catch(err => console.error("Favoriler çekilemedi:", err));
     };
 
@@ -29,10 +29,19 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
+  // Renk Paleti (Tema değişkenlerine göre)
+  const theme = {
+    bg: isDarkMode ? '#0a0a0a' : '#f5f5f5',
+    sidebar: isDarkMode ? '#0d0d0d' : '#ffffff',
+    text: isDarkMode ? '#eee' : '#1a1a1a',
+    border: isDarkMode ? '#222' : '#ddd',
+    card: isDarkMode ? '#111' : '#fff',
+    subText: isDarkMode ? '#666' : '#888'
+  }
+
   const toggleFavorite = (e, coinId) => {
     e.stopPropagation();
     const isFav = favorites.includes(coinId);
-    
     if (isFav) {
       fetch(`http://localhost:5012/api/Favorites/${coinId}`, { method: 'DELETE' })
         .then(() => setFavorites(favorites.filter(id => id !== coinId)));
@@ -41,8 +50,7 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(coinId)
-      })
-      .then(() => setFavorites([...favorites, coinId]));
+      }).then(() => setFavorites([...favorites, coinId]));
     }
   };
 
@@ -52,38 +60,40 @@ function App() {
   );
 
   return (
-    <div style={{ display: 'flex', backgroundColor: '#0a0a0a', width: '100vw', minHeight: '100vh', color: '#eee', fontFamily: 'Inter, Arial', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', backgroundColor: theme.bg, width: '100vw', minHeight: '100vh', color: theme.text, fontFamily: 'Inter, Arial', overflow: 'hidden', transition: '0.3s' }}>
       
       {/* SOL PANEL */}
-      <div style={{ width: '380px', minWidth: '380px', borderRight: '1px solid #222', padding: '20px', overflowY: 'auto', height: '100vh', boxSizing: 'border-box' }}>
-        <h2 style={{ marginBottom: '20px' }}>📈 CryptoTrack</h2>
+      <div style={{ width: '380px', minWidth: '380px', borderRight: `1px solid ${theme.border}`, padding: '20px', overflowY: 'auto', height: '100vh', boxSizing: 'border-box', backgroundColor: theme.sidebar }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+          <h2 style={{ margin: 0 }}>📈 CryptoTrack</h2>
+          <button 
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            style={{ padding: '8px 12px', borderRadius: '20px', border: `1px solid ${theme.border}`, backgroundColor: theme.card, color: theme.text, cursor: 'pointer', fontSize: '1rem' }}
+          >
+            {isDarkMode ? '☀️ Aydınlık' : '🌙 Koyu'}
+          </button>
+        </div>
+        
         <input
           type="text"
           placeholder="Ara..."
-          style={{ width: '100%', padding: '12px', marginBottom: '20px', borderRadius: '8px', border: '1px solid #333', backgroundColor: '#111', color: 'white' }}
+          style={{ width: '100%', padding: '12px', marginBottom: '20px', borderRadius: '8px', border: `1px solid ${theme.border}`, backgroundColor: theme.card, color: theme.text }}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
+
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {filteredCoins.map(coin => (
             <div 
               key={coin.id}
               onClick={() => setSelectedCoin(coin)}
               style={{
-                padding: '15px',
-                borderRadius: '10px',
-                backgroundColor: selectedCoin?.id === coin.id ? '#1a1a1a' : 'transparent',
-                border: '1px solid #222',
-                cursor: 'pointer',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
+                padding: '15px', borderRadius: '10px',
+                backgroundColor: selectedCoin?.id === coin.id ? (isDarkMode ? '#1a1a1a' : '#e0e0e0') : 'transparent',
+                border: `1px solid ${theme.border}`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <button 
-                  onClick={(e) => toggleFavorite(e, coin.id)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: favorites.includes(coin.id) ? '#ffa726' : '#444' }}
-                >
+                <button onClick={(e) => toggleFavorite(e, coin.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: favorites.includes(coin.id) ? '#ffa726' : theme.subText }}>
                   {favorites.includes(coin.id) ? '★' : '☆'}
                 </button>
                 <img src={coin.image} width="25" alt="" />
@@ -96,77 +106,55 @@ function App() {
       </div>
 
       {/* ORTA PANEL */}
-      <div style={{ flex: 1, padding: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', overflowY: 'auto' }}>
+      <div style={{ flex: 1, padding: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         {selectedCoin ? (
           <div style={{ width: '100%', maxWidth: '700px' }}>
              <div style={{ textAlign: 'center', marginBottom: '30px' }}>
                 <img src={selectedCoin.image} width="100" style={{ marginBottom: '20px' }} alt="" />
                 <h1 style={{ fontSize: '3.5rem', margin: 0 }}>{selectedCoin.name}</h1>
-                <p style={{ color: '#666' }}>{selectedCoin.symbol.toUpperCase()} / USD</p>
+                <p style={{ color: theme.subText }}>{selectedCoin.symbol.toUpperCase()} / USD</p>
              </div>
              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                <DetailBox label="Güncel Fiyat" value={`$${selectedCoin.current_price?.toLocaleString()}`} color="#eee" />
-                <DetailBox label="24s Değişim" value={`%${selectedCoin.price_change_percentage_24h?.toFixed(2)}`} color={selectedCoin.price_change_percentage_24h > 0 ? '#4caf50' : '#f44336'} />
-                <DetailBox label="Piyasa Değeri" value={`$${selectedCoin.market_cap?.toLocaleString()}`} color="#aaa" />
-                <DetailBox label="Sıralama" value={`#${selectedCoin.market_cap_rank}`} color="#ffa726" />
+                <DetailBox label="Güncel Fiyat" value={`$${selectedCoin.current_price?.toLocaleString()}`} color={theme.text} theme={theme} />
+                <DetailBox label="24s Değişim" value={`%${selectedCoin.price_change_percentage_24h?.toFixed(2)}`} color={selectedCoin.price_change_percentage_24h > 0 ? '#4caf50' : '#f44336'} theme={theme} />
+                <DetailBox label="Piyasa Değeri" value={`$${selectedCoin.market_cap?.toLocaleString()}`} color={theme.subText} theme={theme} />
+                <DetailBox label="Sıralama" value={`#${selectedCoin.market_cap_rank}`} color="#ffa726" theme={theme} />
              </div>
           </div>
         ) : (
-          <div style={{ textAlign: 'center', color: '#333' }}>
-            <h2 style={{ fontSize: '2.5rem' }}>Coin Detayı İçin Seçim Yap</h2>
-          </div>
+          <h2 style={{ color: theme.subText }}>Analiz için bir coin seç usta!</h2>
         )}
       </div>
 
-      {/* SAĞ PANEL: FAVORİLER + TRENDLER */}
-      <div style={{ width: '320px', minWidth: '320px', borderLeft: '1px solid #222', padding: '20px', backgroundColor: '#0d0d0d', overflowY: 'auto', height: '100vh', boxSizing: 'border-box' }}>
-         
-         {/* ÜST KISIM: FAVORİLER */}
-         <h3 style={{ color: '#ffa726', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>⭐ Favori Takibin</h3>
+      {/* SAĞ PANEL */}
+      <div style={{ width: '320px', minWidth: '320px', borderLeft: `1px solid ${theme.border}`, padding: '20px', backgroundColor: theme.sidebar, overflowY: 'auto' }}>
+         <h3 style={{ color: '#ffa726', marginBottom: '15px' }}>⭐ Favori Takibin</h3>
          <div style={{ marginBottom: '30px' }}>
-            {favorites.length > 0 ? favorites.map(favId => (
-              <div key={favId} style={{ padding: '10px', backgroundColor: '#161616', borderRadius: '8px', marginBottom: '8px', border: '1px solid #222', color: '#eee', fontSize: '0.9rem' }}>
+            {favorites.map(favId => (
+              <div key={favId} style={{ padding: '10px', backgroundColor: theme.card, borderRadius: '8px', marginBottom: '8px', border: `1px solid ${theme.border}`, color: theme.text, fontSize: '0.9rem' }}>
                 • {favId.toUpperCase()}
               </div>
-            )) : <p style={{ color: '#444', fontSize: '0.8rem' }}>Favori coin seçilmedi.</p>}
+            ))}
          </div>
-
-         <hr style={{ border: '0', borderTop: '1px solid #222', margin: '20px 0' }} />
-
-         {/* ALT KISIM: TRENDLER (TOP GAINERS) */}
-         <h3 style={{ color: '#ff5722', marginBottom: '15px', display: 'flex', alignItems: 'center', gap: '10px' }}>🔥 Trend Olanlar (24s)</h3>
-         <div>
-            {coins.length > 0 ? coins
-              .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
-              .slice(0, 3)
-              .map(coin => (
-                <div key={coin.id} style={{ backgroundColor: '#161616', padding: '12px', borderRadius: '10px', marginBottom: '10px', border: '1px solid #222' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{coin.symbol.toUpperCase()}</span>
-                    <span style={{ color: '#4caf50', fontSize: '0.85rem' }}>+{coin.price_change_percentage_24h?.toFixed(2)}%</span>
-                  </div>
-                </div>
-              )) : <p style={{ color: '#444', fontSize: '0.8rem' }}>Veri yükleniyor...</p>
-            }
-         </div>
-
-         <hr style={{ border: '0', borderTop: '1px solid #222', margin: '20px 0' }} />
-
-         {/* PİYASA ÖZETİ */}
-         <div style={{ backgroundColor: '#111', padding: '15px', borderRadius: '12px', border: '1px solid #222' }}>
-            <div style={{ fontSize: '0.75rem', color: '#666' }}>Aktif Takip</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 'bold' }}>{coins.length} Coin</div>
-         </div>
+         <hr style={{ border: '0', borderTop: `1px solid ${theme.border}`, margin: '20px 0' }} />
+         <h3 style={{ color: '#ff5722', marginBottom: '15px' }}>🔥 Trend Olanlar</h3>
+         {coins.sort((a,b) => b.price_change_percentage_24h - a.price_change_percentage_24h).slice(0,3).map(coin => (
+           <div key={coin.id} style={{ backgroundColor: theme.card, padding: '12px', borderRadius: '10px', marginBottom: '10px', border: `1px solid ${theme.border}` }}>
+             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+               <span style={{ fontWeight: 'bold' }}>{coin.symbol.toUpperCase()}</span>
+               <span style={{ color: '#4caf50' }}>+{coin.price_change_percentage_24h?.toFixed(2)}%</span>
+             </div>
+           </div>
+         ))}
       </div>
-
     </div>
   )
 }
 
-function DetailBox({ label, value, color }) {
+function DetailBox({ label, value, color, theme }) {
   return (
-    <div style={{ backgroundColor: '#111', padding: '20px', borderRadius: '15px', border: '1px solid #222' }}>
-      <div style={{ color: '#666', fontSize: '0.8rem', marginBottom: '5px' }}>{label}</div>
+    <div style={{ backgroundColor: theme.card, padding: '20px', borderRadius: '15px', border: `1px solid ${theme.border}` }}>
+      <div style={{ color: theme.subText, fontSize: '0.8rem', marginBottom: '5px' }}>{label}</div>
       <div style={{ fontSize: '1.3rem', fontWeight: 'bold', color: color }}>{value}</div>
     </div>
   )
